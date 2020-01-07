@@ -74,12 +74,16 @@ class JWTGuard implements Guard
         if ($this->user !== null) {
             return $this->user;
         }
-
+        
         if ($this->jwt->setRequest($this->request)->getToken() &&
             ($payload = $this->jwt->check(true)) &&
             $this->validateSubject()
         ) {
-            return $this->user = $this->provider->retrieveById($payload['sub']);
+            if ($user = \App\Models\Auth\User::where('uuid', $payload['sub'])->first()) {
+                return $this->user = $this->provider->retrieveById($user->id);
+            } else {
+                return false;
+            }
         }
     }
 
